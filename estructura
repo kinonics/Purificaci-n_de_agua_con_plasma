@@ -1,0 +1,19 @@
+📦 purificacion-agua-plasma/
+ ┣ 📜 README.md
+ ┣ 📜 FUENTES.md
+ ┣ 📁 firmware/
+ ┃  ┣ 📜 adquisicion_temperatura.ino
+ ┃  ┗ 📜 graficador_temperatura.py
+ ┣ 📁 hardware/
+ ┃  ┣ 📜 esquematico_conexiones.md
+ ┃  ┗ 📜 lista_materiales_bom.md
+ ┣ 📁 diseno-3d/
+ ┃  ┣ 📜 modelo_plasma_v2.f3d
+ ┃  ┣ 📜 plano_general_1_4.pdf
+ ┃  ┣ 📜 plano_base_torre_2_4.pdf
+ ┃  ┣ 📜 plano_base_petri_3_4.pdf
+ ┃  ┗ 📜 plano_puente_electrodo_4_4.pdf
+ ┣ 📁 testing/
+ ┃  ┗ 📜 protocolo_experimental.md
+ ┗ 📁 docs/
+    ┗ 📜 documentacion_tecnica.md
