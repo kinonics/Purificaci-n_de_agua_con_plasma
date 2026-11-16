@@ -1,20 +1,20 @@
 # Purificación de agua mediante contacto directo con plasma
 
-Repositorio oficial del proyecto para la asignatura **Taller de Diseño, Sección 1** de la Universidad Adolfo Ibáñez[cite: 1].
+Repositorio oficial del proyecto para la asignatura **Taller de Diseño, Sección 1** de la Universidad Adolfo Ibáñez.
 
 ## 👥 Integrantes
-* Angelo Fisicaro[cite: 1]
-* Franco Fisicaro[cite: 1]
-* Francisco Osorio[cite: 1]
-* Joaquín Vásquez[cite: 1]
+* Angelo Fisicaro
+* Franco Fisicaro
+* Francisco Osorio
+* Joaquín Vásquez
 
-* **Profesor:** Camilo Vásquez[cite: 1]
-* **Ayudante:** Martín Raguileo[cite: 1]
+* **Profesor:** Camilo Vásquez
+* **Ayudante:** Martín Raguileo
 
 ---
 
 ## 📌 Resumen del Proyecto
-La creciente escasez hídrica y contaminación exigen alternativas eficientes frente a las limitaciones de las tecnologías tradicionales (como ósmosis inversa o tratamientos biológicos). Este proyecto propone el desarrollo de un **reactor de plasma no sellado** que opera en contacto directo con el ambiente, utilizando aire como gas ionizable para la degradación destructiva de microcontaminantes[cite: 1].
+La creciente escasez hídrica y contaminación exigen alternativas eficientes frente a las limitaciones de las tecnologías tradicionales (como ósmosis inversa o tratamientos biológicos). Este proyecto propone el desarrollo de un **reactor de plasma no sellado** que opera en contacto directo con el ambiente, utilizando aire como gas ionizable para la degradación destructiva de microcontaminantes.
 
 ## 📂 Estructura del Repositorio
 - `codigo/`: Códigos fuente en Arduino IDE (`.ino`) y procesamiento de datos en Python (`.py`)[cite: 2].
