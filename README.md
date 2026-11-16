@@ -11,20 +11,18 @@ Repositorio oficial del proyecto para la asignatura **Taller de Diseño, Secció
 * **Profesor:** Camilo Vásquez
 * **Ayudante:** Martín Raguileo
 
----
+## 📌 Problemática y Descripción
+La creciente escasez y contaminación hídrica exigen alternativas eficaces frente a las limitaciones de las tecnologías tradicionales (como ósmosis inversa o tratamientos biológicos, que generan lodos o sufren saturación de membranas). Este proyecto propone el desarrollo de un **reactor de plasma no sellado** que opera en contacto directo con el ambiente, utilizando aire como gas ionizable para la degradación destructiva de microcontaminantes.
 
-## 📌 Resumen del Proyecto
-La creciente escasez hídrica y contaminación exigen alternativas eficientes frente a las limitaciones de las tecnologías tradicionales (como ósmosis inversa o tratamientos biológicos). Este proyecto propone el desarrollo de un **reactor de plasma no sellado** que opera en contacto directo con el ambiente, utilizando aire como gas ionizable para la degradación destructiva de microcontaminantes.
+## 🛠️ Componentes Utilizados
+* Microcontrolador Arduino Leonardo.
+* Sensor de temperatura DS18B20 (comunicación 1-wire).
+* Protoboard, cables de conexión y resistencia pull-up.
+* Estructura modular de madera MDF de 5mm (Modelo Plasma V2) y vaso Petri.
 
-## 📂 Estructura del Repositorio
-- `codigo/`: Códigos fuente en Arduino IDE (`.ino`) y procesamiento de datos en Python (`.py`).
-- `planos/`: Planos técnicos del prototipo (Modelo V2: Base de torre, base de Petri y puente de electrodos).
-- `informes/`: Documentación y avances del proyecto.
-- `imagenes/`: Fotografías de los prototipos experimentales y esquemas[cite: 1, 2].
-
-## 📊 Sistema Electrónico y Validación
-Se implementó un sistema de adquisición de temperatura utilizando:
-* **Microcontrolador:** Arduino Leonardo.
-* **Sensor:** DS18B20 (comunicación 1-wire).
-* **Monitoreo:** Script en Python con librerías `pyserial` y `matplotlib` para graficar el comportamiento térmico en tiempo real y exportar los datos a un archivo `.csv`.
-
+## ⚙️ Instrucciones de Instalación y Uso
+1. **Hardware:** Conectar el sensor DS18B20 al pin digital 2 de Arduino Leonardo según el esquemático en la carpeta `hardware/`.
+2. **Firmware:** Cargar el código `adquisicion_temperatura.ino` (ubicado en la carpeta `firmware/`) usando Arduino IDE[cite: 1].
+3. **Dashboard / Monitoreo:** Instalar las librerías de Python necesarias ejecutando en consola:
+   ```bash
+   pip install pyserial matplotlib
