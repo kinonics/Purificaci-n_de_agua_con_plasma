@@ -1,6 +1,7 @@
 # Protocolo Experimental y de Validación (Testing)
 
-**Proyecto:** Purificación de Agua Mediante Contacto Directo con Plasma. \\
+**Proyecto:** Purificación de Agua Mediante Contacto Directo con Plasma.
+
 **Modelo Evaluado:** Modelo Plasma V2 (Estructura MDF 5mm + Vaso Petri) y Sistema de Adquisición DS18B20
 
 ## 1. ¿Qué se evaluará? (Objetivos de la Prueba)
