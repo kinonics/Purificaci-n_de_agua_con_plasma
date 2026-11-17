@@ -1,46 +1,32 @@
-# 📚 Declaración de Fuentes y Uso de Inteligencia Artificial
-**Proyecto:** Purificación de Agua Mediante Contacto Directo con Plasma  
-**Asignatura:** Taller de Diseño — Universidad Adolfo Ibáñez (UAI)  
+# Declaración de Fuentes e Inteligencia Artificial — TEI201
 
----
+## 1. Librerías utilizadas
 
-> **Aviso Importante de Cumplimiento:**  
-> Este documento da cumplimiento oficial a los requerimientos obligatorios de la dimensión de Software de la asignatura[cite: 2]. *(Nota: La ausencia o vacío de este archivo asigna automáticamente la calificación mínima de 1,0).*
+| Librería | Versión | Uso en el proyecto | Fuente |
+| :--- | :--- | :--- | :--- |
+| OneWire | 2.3.8 | Comunicación 1-Wire pin 2 | https://github.com/PaulStoffregen/OneWire |
+| DallasTemperature | 3.9.0 | Lectura térmica DS18B20 | https://github.com/milesburton/Arduino-Temperature-Control-Library |
+| pyserial | 3.5 | Lectura serial a 115200 bd | https://github.com/pyserial/pyserial |
+| matplotlib | 3.9.2 | Dashboard en tiempo real | https://matplotlib.org/ |
 
----
+## 2. Código externo adaptado
 
-## ⚙️ 1. Librerías y Dependencias Externas
+### Inicialización y resolución del sensor DS18B20 (main.ino, líneas 1-31)
+* Fuente: Ejemplo Simple.ino de la librería DallasTemperature (https://github.com/milesburton/Arduino-Temperature-Control-Library)
+* Adaptación: Se definió el pin digital 2 (`#define SENSOR_PIN 2`), se aumentó la velocidad serial a 115200 baudios, se fijó la resolución en 10 bits (`sensors.setResolution(10)`, tiempo de conversión hasta 187,5 ms) y se agregó una validación `if (temperatura != DEVICE_DISCONNECTED_C)` para enviar por puerto serial el tiempo (`millis()`) y la temperatura separados por coma con `delay(10)`.
 
-Para el funcionamiento del sistema de adquisición y monitoreo de temperatura, se emplearon las siguientes librerías de código abierto:
+### Lectura serial, graficación interactiva y guardado CSV (dashboard_temperatura.py, líneas 1-58)
+* Fuente: Documentación oficial de PySerial (https://pyserial.readthedocs.io/) y modo interactivo de Matplotlib (`plt.ion()`).
+* Adaptación: Se configuró la lectura no bloqueante con `timeout=0.05` y limpieza de buffer (`reset_input_buffer()`), decodificando la trama `tiempo_ms, temp` para convertir milisegundos a segundos (`float(tiempo_ms) / 1000`), actualizar la curva en vivo y guardar cada fila en `temperaturas.csv` usando `archivo.flush()`.
 
-*   **`OneWire.h` (Arduino IDE):**  
-    *   *Fuente:* Repositorio oficial de librerías de Arduino / Dallas Semiconductor.  
-    *   *Aplicación:* Gestión de la comunicación por protocolo *1-wire* con el sensor de temperatura DS18B20[cite: 1].
-*   **`DallasTemperature.h` (Arduino IDE):**  
-    *   *Fuente:* Comunidad de desarrolladores de Arduino.  
-    *   *Aplicación:* Simplificación de la lectura de datos térmicos y gestión de resoluciones del sensor DS18B20[cite: 1].
-*   **`pyserial` (Python):**  
-    *   *Fuente:* Índice de paquetes de Python (PyPI) / Documentación oficial de Python.  
-    *   *Aplicación:* Lectura en tiempo real del flujo de datos transmitidos por el puerto serial desde el microcontrolador Arduino Leonardo[cite: 1].
-*   **`matplotlib.pyplot` (Python):**  
-    *   *Fuente:* Librería estándar de visualización científica en Python.  
-    *   *Aplicación:* Generación de la interfaz gráfica dinámica (dashboard local) para la representación de temperatura frente al tiempo[cite: 1].
+## 3. Uso de Inteligencia Artificial
 
----
+### Script de visualización en tiempo real y manejo de excepciones (dashboard_temperatura.py, líneas 18-58)
+* Herramienta: Asistente de IA (noviembre 2026)
+* Prompt utilizado: "Escribe un script en Python con pyserial y matplotlib que lea tiempo en ms y temperatura desde Arduino a 115200 baudios, grafique en tiempo real y guarde los datos en temperaturas.csv sin perder muestras"
+* Adaptación: Se ajustó el puerto serial (`COM3`), se incorporó un bloque `try-except ValueError` para descartar tramas incompletas por ruido electromagnético del arco de plasma y un bloque `except KeyboardInterrupt` con `finally` para cerrar de forma segura el puerto serial y el archivo CSV.
+* Comprensión: El equipo comprende que el bucle `while arduino.in_waiting:` vacía el buffer serial en cada iteración, grafica los arreglos `tiempos` y `temperaturas` mediante `linea.set_data()` y asegura la persistencia de datos en disco con `archivo.flush()`.
 
-## 🛠️ 2. Fragmentos de Código Externo y Adaptaciones
-
-*   **Estructura de Comunicación Serial:**  
-    *   *Origen:* Ejemplos estándar de la documentación de PySerial y foros de desarrollo de Arduino.  
-    *   *Adaptación:* Modificación de los tiempos de muestreo, manejo de excepciones (`try-except` para evitar interrupciones por pérdida de paquetes) y automatización del guardado directo en formato `.csv` (`temperaturas.csv`)[cite: 1].
-
----
-
-## 🤖 3. Declaración del Uso de Inteligencia Artificial
-
-*   **Herramientas Empleadas:** Asistentes basados en modelos de lenguaje avanzados (LLMs).
-*   **Ámbito de Aplicación:**  
-    *   Apoyo en la optimización y sintaxis del script de adquisición en Python para el gráfico en tiempo real con `matplotlib`[cite: 1].
-    *   Estructuración y redacción de la documentación técnica del repositorio[cite: 2].
-*   **Declaración de Dominio Técnico:**  
-    *   *Los integrantes del grupo declaran comprender a cabalidad el funcionamiento íntegro del código implementado, poseyendo la capacidad plena para explicar las decisiones técnicas, esquemáticos y la lógica detrás del sistema de medición.*
+### Estructura de documentación del repositorio (README.md y protocolo de pruebas)
+* Herramienta: Gemini (noviembre 2026)
+* Uso: Generación de la plantilla base en Markdown para `README.md`, `FUENTES.md` y estructuración del protocolo experimental a partir de los informes y códigos elaborados por el equipo.
