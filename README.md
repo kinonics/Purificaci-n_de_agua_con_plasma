@@ -1,8 +1,8 @@
-# Purificación de Agua Mediante Contacto Directo con Plasma
+# Purificación de Agua Mediante Contacto Indirecto con Plasma
 
 Sistema de generación de plasma frío en aire a presión atmosférica para el tratamiento de agua en un vaso Petri, integrado con un sistema IoT de captura continua, almacenamiento local estructurado y monitoreo térmico en tiempo real para validar la transferencia de energía plasma-agua.
 
-## 👥 Integrantes del Equipo
+##  Integrantes del Equipo
 * **Grupo 2**
 * Angelo Fisicaro
 * Franco Fisicaro
@@ -11,10 +11,10 @@ Sistema de generación de plasma frío en aire a presión atmosférica para el t
 * **Asignatura:** TEI201 — Taller de Diseño en Ingeniería (Sección 1, UAI)
 * **Profesor:** Camilo Vásquez Wilson | **Ayudante:** Martín Raguileo
 
-## 📌 Problema que Resuelve (Referencia al Avance 1)
-Los métodos convencionales de tratamiento hídrico presentan limitaciones críticas frente a microcontaminantes emergentes (fármacos, pesticidas y disruptores endocrinos): la ultrafiltración no retiene compuestos traza, la ósmosis inversa sufre ensuciamiento de membranas con alto consumo energético y los tratamientos biológicos generan lodos residuales. Este proyecto implementa un reactor de plasma no sellado en contacto directo con el agua que degrada contaminantes mediante oxidación avanzada, utilizando un sistema de monitoreo térmico continuo para comprobar empíricamente la interacción entre la descarga de plasma y el agua.
+##  Problema que Resuelve (Referencia al Avance 1)
+Los métodos convencionales de tratamiento hídrico presentan limitaciones críticas frente a microcontaminantes emergentes (fármacos, pesticidas y disruptores endocrinos): la ultrafiltración no retiene compuestos traza, la ósmosis inversa sufre ensuciamiento de membranas con alto consumo energético y los tratamientos biológicos generan lodos residuales. Este proyecto implementa un reactor de plasma no sellado en contacto indirecto con el agua que degrada contaminantes mediante oxidación avanzada, utilizando un sistema de monitoreo térmico continuo para comprobar empíricamente la interacción entre la descarga de plasma y el agua.
 
-## 🛠️ Componentes Necesarios para Replicar el Hardware
+##  Componentes Necesarios para Replicar el Hardware
 * 1x Microcontrolador Arduino Leonardo.
 * 1x Sensor de temperatura digital impermeable DS18B20 (rango -55 °C a 125 °C, precisión ±0,5 °C, protocolo 1-Wire).
 * 1x Protoboard, cables jumper y resistencia pull-up / variable.
