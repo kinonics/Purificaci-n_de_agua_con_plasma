@@ -3,6 +3,7 @@
 Sistema de generación de plasma frío en aire a presión atmosférica para el tratamiento de agua en un vaso Petri, integrado con un sistema IoT de captura continua, almacenamiento local estructurado y monitoreo térmico en tiempo real para validar la transferencia de energía plasma-agua.
 
 ## 👥 Integrantes del Equipo
+* **Grupo 2**
 * Angelo Fisicaro
 * Franco Fisicaro
 * Francisco Osorio
