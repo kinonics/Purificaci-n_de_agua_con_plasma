@@ -12,7 +12,7 @@ Las tecnologías convencionales de tratamiento de agua presentan limitaciones op
 * **Ósmosis Inversa:** Requiere altas presiones (10 a 80 bar), sufre ensuciamiento severo por materia orgánica y coloidal, eleva la demanda energética y genera salmuera residual.
 * **Tratamientos Biológicos:** Presentan alta sensibilidad a variaciones térmicas o hidráulicas y requieren una compleja gestión de lodos secundarios.
 
-Para superar la baja escalabilidad de los reactores de plasma tradicionales que exigen cámaras de vacío selladas, este prototipo implementa un **reactor de plasma frío no sellado** que utiliza aire a presión atmosférica como gas ionizable en contacto directo con el agua. El sistema IoT integrado monitorea continuamente la curva térmica del agua para comprobar empíricamente la transferencia de energía plasma-agua y asegurar que el reactor opere sin evaporación violenta ni degradación de los electrodos.
+Para superar la baja escalabilidad de los reactores de plasma tradicionales que exigen cámaras de vacío selladas, este prototipo implementa un **reactor de plasma frío no sellado** que utiliza aire a presión atmosférica como gas ionizable en contacto indirecto con el agua. El sistema IoT integrado monitorea continuamente la curva térmica del agua para comprobar empíricamente la transferencia de energía plasma-agua y asegurar que el reactor opere sin evaporación violenta ni degradación de los electrodos.
 
 ## 2. Arquitectura de Software y Ciclo de Datos IoT
 
