@@ -30,3 +30,31 @@
 ### Estructura de documentación del repositorio (README.md y protocolo de pruebas)
 * Herramienta: Gemini (noviembre 2026)
 * Uso: Generación de la plantilla base en Markdown para `README.md`, `FUENTES.md` y estructuración del protocolo experimental a partir de los informes y códigos elaborados por el equipo.
+
+
+
+## 4. Bibliografía Científica y Herramientas de Diseño CAD
+
+### Fundamentos físicos y estado del arte
+- Conrads, H., y Schmidt, M. (2000). Plasma generation and plasma sources. Plasma Sources Science and Technology, 9(4), 441-454.
+  - Aplicación en el proyecto: Clasificación fundamental de fuentes de plasma atmosférico y criterios de selección de régimen entre no térmico (plasma frío) frente a descargas de arco térmico.
+
+- Foster, J. E. (2017). Plasma-based water purification: Challenges and prospects for the future. Physics of Plasmas, 24(5), 055501.
+  - Aplicación en el proyecto: Respaldo teórico para la ruptura dieléctrica del aire a presión atmosférica (aproximadamente 30 kV/cm), la prevención de inestabilidad térmica mediante geometría de punta fina y la generación de especies reactivas de oxígeno y nitrógeno (RONS).
+
+- Svarnas, P., Poupouzas, M., Papalexopoulou, K., Kalaitzopoulou, E., Skipitari, M., Papadea, P., y Krontiras, C. (2022). Water modification by cold plasma jet with respect to physical and chemical properties. Applied Sciences, 12(23), 11950.
+  - Aplicación en el proyecto: Referencia experimental para la arquitectura indirecta pin-to-water, el cierre de circuito mediante acoplamiento capacitivo a tierra (0 V) bajo el recipiente dieléctrico y el análisis del comportamiento térmico y evaporativo del agua tratada.
+
+- Alvarado Avilés, A. B., Montesel Pastuzo, C. G., y Yépez, P. (2021). Efecto del agua activada por plasma frío en la descontaminación de material de empaque en el llenado aséptico (Tesis doctoral, ESPOL - FIMCP).
+  - Aplicación en el proyecto: Análisis del agua activada por plasma en procesos de desinfección y degradación oxidativa.
+
+- Celestino Vázquez, J. (2023). Análisis de propiedades fisicoquímicas del agua activada por plasma y su aplicación en la agricultura.
+  - Aplicación en el proyecto: Análisis de la evolución de los parametros fisicoquímicos del agua tras la interacción plasma-líquido y su escalabilidad en aplicaciones reales (ODS 6).
+
+### Software de modelado 3D y manufactura digital
+- Autodesk Fusion 360 (Licencia Educacional UAI)
+  - Uso en el proyecto: Modelado paramétrico tridimensional del reactor (torre de soporte, puente voladizo y peana), validación geométrica del gap aire-agua (7,8 mm en seco y 2,8 mm libres sobre 5 mm de agua), generación del juego de planos técnicos ortogonales en PDF (Planos_PlasmaV2.pdf) y exportación de vectores 2D (.dxf) para corte láser en MDF de 5,5 mm.
+
+### Asistencia de Inteligencia Artificial en Diseño Mecánico
+- Herramienta: Gemini (octubre - noviembre 2026)
+  - Uso: Apoyo en el cálculo de tolerancias mecánicas para corte láser (diámetro 12,5 mm para perno roscado M12 y diámetro 62 mm para placa Petri comercial de 60 x 15 mm), optimización de anidado (nesting) en planchas de MDF de 300 x 300 mm y estructuración técnica de las especificaciones de manufactura en la memoria del proyecto.
