@@ -23,6 +23,14 @@ Los métodos convencionales de tratamiento hídrico presentan limitaciones crít
 * 1x Lámina de cobre (40 × 40 mm con lengüeta lateral) como electrodo pasivo de referencia a tierra (0 V).
 * Estructura modular **Modelo Plasma V2** en madera MDF de 5.5 mm (Base de Torre de 80x80x25 mm, Base de Petri de 110x110x20 mm, Puente de Electrodo de 125x30x5 mm y eje vertical de 130 mm con fijaciones desmontables).
 
+## Estructura del Repositorio
+- [firmware/](firmware/) — Código fuente en Arduino C++ y dashboard de monitoreo térmico en Python.
+- [hardware/](hardware/) — Esquemático eléctrico, lista de materiales con costos (`BOM.xlsx`) y fotos del prototipo.
+- [diseno-3D/](diseno-3D/) — Modelo paramétrico en Fusion 360 (`.f3d`), planos técnicos en PDF, corte láser (`.dxf`) y renders.
+- [testing/](testing/) — Protocolo experimental, logs cuantitativos de temperatura y análisis de fallas.
+- [docs/](docs/) — Informe técnico final en PDF y documentación complementaria.
+- [FUENTES.md](FUENTES.md) — Declaración de librerías, código adaptado, bibliografía científica y uso de IA.
+
 ##  Instrucciones para Cargar el Firmware y Conectar el Dashboard
 1. **Conexión de Hardware:** Conectar el pin de datos del sensor DS18B20 al pin digital 2 del Arduino Leonardo (`SENSOR_PIN 2`), junto con alimentación (VCC), tierra (GND) y su resistencia en la protoboard según el plano en `hardware/esquematico.pdf`.
 2. **Carga del Firmware:**
@@ -33,3 +41,7 @@ Los métodos convencionales de tratamiento hídrico presentan limitaciones crít
    * Instalar las dependencias en Python ejecutando en la terminal:
 ```bash
 pip install pyserial matplotlib
+
+
+
+
