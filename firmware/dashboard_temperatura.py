@@ -1,4 +1,9 @@
-"""Dashboard de temperatura del agua (DS18B20).
+// ============================================================================
+// PROYECTO: Purificación de Agua Mediante Contacto Directo con Plasma (TEI201)
+// ARCHIVO: firmware/main.ino
+// PLACA: Arduino Leonardo | SENSOR: DS18B20 (Protocolo 1-Wire)
+// ============================================================================
+
 
 Arduino transmite tiempo y temperatura por el puerto serial a 4 Hz nominales.
 Este programa valida, visualiza y guarda cada lectura, y finaliza el registro
