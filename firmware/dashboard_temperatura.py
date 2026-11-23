@@ -1,16 +1,13 @@
-// ============================================================================
-// PROYECTO: Purificación de Agua Mediante Contacto Directo con Plasma (TEI201)
-// ARCHIVO: firmware/main.ino
-// PLACA: Arduino Leonardo | SENSOR: DS18B20 (Protocolo 1-Wire)
-// ============================================================================
+"""Dashboard de temperatura del agua (DS18B20).
 
-
-Arduino transmite tiempo y temperatura por el puerto serial a 4 Hz nominales.
+Arduino transmite DATA,milisegundos,temperatura,rele a 4 Hz nominales.
 Este programa valida, visualiza y guarda cada lectura, y finaliza el registro
-cuando la temperatura alcanza o supera el objetivo indicado por el operador.
-No controla la fuente de alto voltaje ni constituye un sistema de seguridad.
+cuando la temperatura cruza el objetivo en la direccion de la medicion.
+Controla SOLAMENTE el relé de prueba de banco mediante comandos I/P/H/T:.
+Si la temperatura inicial es mayor que el objetivo, mide ENFRIAMIENTO
+con el rele apagado; si es menor, mide CALENTAMIENTO con el rele encendido.
 
-Ejecutar: python registro_temperatura.py
+Ejecutar: python registro_temperatura_v2.py
 Dependencias: python -m pip install pyserial matplotlib
 """
 
@@ -32,9 +29,9 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 
 # 2. Configuración del protocolo y de las carpetas del repositorio.
 # El baud rate debe coincidir exactamente con Serial.begin() en Arduino.
-VELOCIDAD = 9600
+VELOCIDAD = 115200
 INTERVALO_GUI_MS = 100  # Consulta del puerto; NO es la frecuencia del sensor.
-TIEMPO_SIN_DATOS_S = 5  # Alerta de pérdida de lecturas válidas.
+TIEMPO_SIN_DATOS_S = 8  # Alerta de pérdida de lecturas válidas.
 HEADER = ('tiempo_s', 'temperatura_C')
 # Colocar registro_temperatura.py en la raíz del repositorio.
 REPOSITORIO = Path(__file__).resolve().parent
@@ -50,9 +47,18 @@ def parse_target(value):
     return target
 
 
-def reached_target(temp, target):
-    """Se usa >= porque el sensor puede saltarse el valor exacto del objetivo."""
-    return target is not None and temp >= target
+def reached_target(temp, target, mode):
+    """Se detiene al cruzar la meta en la direccion adecuada.
+
+    Enfriamiento: temperatura <= meta. Calentamiento: temperatura >= meta.
+    """
+    if target is None:
+        return False
+    if mode == 'CALENTAMIENTO':
+        return temp >= target
+    if mode == 'ENFRIAMIENTO':
+        return temp <= target
+    return False
 
 
 def indicators(data):
@@ -68,14 +74,30 @@ def indicators(data):
 
 
 def parse_measurement(line):
-    """Descarta encabezados, errores, infinitos y lecturas fuera del rango."""
+    """Extrae DATA,ms,temp_C,rele del nuevo Arduino; devuelve (seg,°C,0/1)."""
     try:
-        # Arduino transmite dos valores separados por coma: segundos y °C.
-        a, b = line.strip().split(',')
-        t, temp = float(a), float(b)
+        label, ms, value, state = line.strip().split(',')
+        if label != 'DATA' or state not in ('0', '1'):
+            return None
+        t, temp = float(ms) / 1000.0, float(value)
+        if not (math.isfinite(t) and math.isfinite(temp) and t >= 0
+                and -55 <= temp <= 125):
+            return None
+        return t, temp, int(state)
     except (ValueError, TypeError):
         return None
-    if not (math.isfinite(t) and math.isfinite(temp) and t >= 0 and -55 <= temp <= 125):
+
+
+def parse_saved_measurement(row):
+    """CSV histórico y actual usan 2 columnas: tiempo_s,temperatura_C."""
+    if len(row) != 2:
+        return None
+    try:
+        t, temp = float(row[0]), float(row[1])
+    except (ValueError, TypeError):
+        return None
+    if not (math.isfinite(t) and math.isfinite(temp)
+            and t >= 0 and -55 <= temp <= 125):
         return None
     return t, temp
 
@@ -90,7 +112,7 @@ def load_csv(path):
         for i, row in enumerate(reader, 2):
             if not row:
                 continue
-            point = parse_measurement(','.join(row))
+            point = parse_saved_measurement(row)
             if point is None or (data and point[0] <= data[-1][0]):
                 raise ValueError(f'Medición inválida o tiempo no creciente en fila {i}.')
             data.append(point)
@@ -115,6 +137,15 @@ class App:
         self.folder = CARPETA_MEDICIONES
         self.active_target = None  # Límite fijo durante el experimento.
         self.last_valid_at = None  # Reloj del PC para detectar falta de lecturas.
+        self.configured = False  # Objetivo confirmado por el Arduino.
+        self.start_sent = False
+        self.started = False  # Confirmación de SESION iniciada (también en enfriamiento).
+        self.mode = None  # CALENTAMIENTO o ENFRIAMIENTO, confirmado por Arduino.
+        self.last_config_at = 0
+        self.sent_start_at = 0
+        self.last_heartbeat_at = 0
+        self.pending_stop_reason = None
+        self.relay_status = tk.StringVar(value='APAGADO')
         self.target = tk.StringVar()  # Sin objetivo por defecto: el usuario lo elige.
         self.delta = tk.StringVar(value='— °C')
         self.mean = tk.StringVar(value='— °C')
@@ -156,13 +187,13 @@ class App:
         ttk.Label(target_bar, text='Temperatura objetivo (°C):').pack(side='left')
         self.target_entry = ttk.Entry(target_bar, textvariable=self.target, width=10)
         self.target_entry.pack(side='left', padx=6)
-        ttk.Label(target_bar, text='El registro se detiene al alcanzar o superar el objetivo.').pack(side='left')
+        ttk.Label(target_bar, text='Meta mayor: calentamiento (relé activo). Meta menor: enfriamiento (relé apagado).').pack(side='left')
         ttk.Label(outer, textvariable=self.alert, foreground='#9C4100', wraplength=900).pack(anchor='w')
 
         # 4.3. Indicadores derivados de cada nueva medición.
         metrics = ttk.Frame(outer)
         metrics.pack(fill='x', pady=(6, 12))
-        for col, (caption, variable) in enumerate([('Temperatura', self.temp), ('Tiempo (desde inicio)', self.elapsed), ('Registro', self.count), ('ΔT', self.delta), ('Promedio', self.mean), ('Frecuencia real', self.hz)]):
+        for col, (caption, variable) in enumerate([('Temperatura', self.temp), ('Tiempo (desde inicio)', self.elapsed), ('Registro', self.count), ('ΔT', self.delta), ('Promedio', self.mean), ('Frecuencia real', self.hz), ('Relé de prueba', self.relay_status)]):
             frame = ttk.Frame(metrics, padding=(10, 4))
             frame.grid(row=col // 3, column=col % 3, sticky='ew')
             metrics.columnconfigure(col % 3, weight=1)
@@ -237,6 +268,7 @@ class App:
         self.elapsed.set('— s')
         self.count.set('0 mediciones')
         self.export_button.configure(state='disabled')
+        self.relay_status.set('APAGADO')
         self.redraw()
 
     # 5. Inicio del experimento: validar objetivo, crear CSV y conectar.
@@ -278,11 +310,19 @@ class App:
         self.first_time = self.last_raw = None
         self.active_target = target
         self.last_valid_at = time.monotonic()
+        self.configured = False
+        self.start_sent = False
+        self.started = False
+        self.mode = None
+        self.last_config_at = 0
+        self.sent_start_at = 0
+        self.last_heartbeat_at = 0
+        self.pending_stop_reason = None
         self.reset_data()
         self.alert.set(f'Objetivo: {target:.2f} °C. Esperando lecturas.')
         self.save_metadata('En curso')
         self.filename.set(f'Guardando: {self.path}')
-        self.status.set('Conectado. Esperando la primera lectura del sensor…')
+        self.status.set('Conectado. Sin generador. Detectando calentamiento o enfriamiento…')
         self.set_running(True)
 
     # 6. Transformación de datos: tabla, indicadores y gráfico.
@@ -321,55 +361,144 @@ class App:
         self.canvas.draw_idle()
 
     # 7. Adquisición: leer puerto sin bloquear, validar y guardar cada dato.
+    def send_command(self, command):
+        """Envía órdenes delimitadas por salto de línea para el sketch de pruebas."""
+        if self.ser is None:
+            return False
+        self.ser.write((command + '\n').encode('ascii'))
+        self.ser.flush()
+        return True
+
+    # 7. Leer Arduino, negociar objetivo y mantener el latido de la prueba.
     def poll(self):
-        """El reloj de Arduino determina el tiempo real entre las muestras."""
+        """La GUI es solo una interfaz de pruebas; Arduino decide el apagado."""
         changed = False
         if self.ser is not None:
             try:
-                # Una lectura USB puede incluir varias líneas o una línea incompleta.
+                now = time.monotonic()
+                # Reenviar objetivo hasta obtener la confirmación del Arduino.
+                # Útil si abrir el puerto reinicia el Leonardo.
+                if not self.configured and now - self.last_config_at >= 1.0:
+                    self.send_command('P')
+                    self.send_command(f'T:{self.active_target:.3f}')
+                    self.last_config_at = now
+
+                # Con el relé de prueba activo enviamos latidos cada 0,5 s.
+                # Arduino desactiva D7 si no los recibe durante 1,5 s.
+                if self.started and now - self.last_heartbeat_at >= 0.5:
+                    self.send_command('H')
+                    self.last_heartbeat_at = now
+
                 self.buffer += self.ser.read(min(self.ser.in_waiting, 65536))
                 lines = self.buffer.split(b'\n')
                 self.buffer = lines.pop()
                 if len(self.buffer) > 4096:
                     self.buffer = b''
+
                 for raw in lines:
                     line = raw.decode('ascii', errors='replace').strip()
-                    if line.startswith('# ERROR'):
-                        self.alert.set('Lectura inválida: revisa el sensor. No se guardó un dato falso.')
+                    if not line:
                         continue
+                    if line.startswith('# OBJETIVO,'):
+                        try:
+                            acknowledged = float(line.split(',', 1)[1])
+                        except ValueError:
+                            self.stop('Objetivo no confirmado por Arduino.')
+                            break
+                        if abs(acknowledged - self.active_target) > 0.01:
+                            self.stop('Objetivo devuelto por Arduino no coincide.')
+                            break
+                        self.configured = True
+                        self.status.set('Objetivo confirmado. Esperando medición válida…')
+                        continue
+                    if line.startswith('# INICIADO,'):
+                        # El Arduino decide el modo con la ultima lectura real.
+                        mode = line.split(',', 1)[1]
+                        if mode not in ('CALENTAMIENTO', 'ENFRIAMIENTO'):
+                            self.stop('Modo de medición desconocido.')
+                            break
+                        self.mode = mode
+                        self.started = True
+                        self.relay_status.set('ENCENDIDO (PRUEBA)' if mode == 'CALENTAMIENTO'
+                                              else 'APAGADO (ENFRIAMIENTO)')
+                        self.status.set(f'Sesión de {mode.lower()} activa. Guardando CSV y gráfico…')
+                        self.last_heartbeat_at = 0
+                        continue
+                    if line.startswith('# FINALIZADO,'):
+                        # Arduino comunica fin ANTES del dato final; esperamos muestra.
+                        self.relay_status.set('APAGADO')
+                        self.pending_stop_reason = 'Arduino finalizó la sesión: ' + line.split(',', 1)[1]
+                        continue
+                    if line.startswith('# ERROR_SENSOR') or line.startswith('# INICIO_DENEGADO'):
+                        self.stop('Arduino informó: ' + line)
+                        break
+                    if line.startswith('# ERROR,'):
+                        self.stop('Arduino informó: ' + line)
+                        break
+                    if line.startswith('#'):
+                        continue  # Mensajes de estado, no son mediciones.
+
                     point = parse_measurement(line)
                     if point is None:
-                        if line and line != ','.join(HEADER):
-                            self.alert.set('Lectura inválida recibida; se omitió.')
                         continue
-                    t, temp = point
+                    t, temp, active_flag = point
+                    self.last_valid_at = time.monotonic()
+                    self.temp.set(f'{temp:.3f} °C')
+
+                    # Al tener objetivo confirmado Y lectura reciente, iniciar.
+                    if self.configured and not self.start_sent:
+                        if abs(temp - self.active_target) < 0.0001:
+                            self.stop('La temperatura ya es igual al objetivo. Elige otro objetivo.')
+                            break
+                        self.send_command('I')
+                        self.start_sent = True
+                        self.sent_start_at = time.monotonic()
+                        self.status.set('Solicitud de inicio enviada al Arduino…')
+                        continue
+
+                    # No registrar hasta recibir # INICIADO.
+                    if not self.started:
+                        continue
                     if self.last_raw is not None and t <= self.last_raw:
-                        self.stop('El Arduino se reinició o su reloj retrocedió. Inicia un nuevo registro.')
+                        self.stop('El Arduino se reinició o su reloj retrocedió.')
                         break
-                    # Se toma la primera lectura como t=0, no el encendido de Arduino.
                     if self.first_time is None:
                         self.first_time = t
                     self.last_raw = t
                     elapsed = t - self.first_time
-                    # Primero guardamos el dato, incluso si es el que alcanza el límite.
                     self.writer.writerow((f'{elapsed:.3f}', f'{temp:.4f}'))
-                    self.out.flush()  # Vacía el búfer de Python hacia el sistema operativo.
-                    self.last_valid_at = time.monotonic()
+                    self.out.flush()
                     self.add_point(elapsed, temp)
-                    self.status.set('Registrando y guardando automáticamente…')
+                    self.relay_status.set('ENCENDIDO (PRUEBA)' if active_flag
+                                          else ('APAGADO (ENFRIAMIENTO)' if self.mode == 'ENFRIAMIENTO'
+                                                else 'APAGADO'))
                     changed = True
-                    # 8. Decisión operativa: alcanzar/superar el objetivo finaliza
-                    # el registro. break descarta las lecturas pendientes posteriores.
-                    if reached_target(temp, self.active_target):
-                        reason = f'Objetivo alcanzado: {temp:.2f} °C ≥ {self.active_target:.2f} °C. Registro finalizado.'
-                        self.stop(reason)
+                    # En ENFRIAMIENTO el rele apagado es lo CORRECTO.
+                    if self.pending_stop_reason:
+                        self.stop(self.pending_stop_reason)
                         break
-                    self.alert.set(f'Midiendo. Faltan {self.active_target - temp:.2f} °C para el objetivo.')
-                # Si no llegan lecturas válidas, no mantener una sesión ciega.
-                if self.ser is not None and time.monotonic() - self.last_valid_at >= TIEMPO_SIN_DATOS_S:
-                    self.stop('Alerta: 5 s sin lecturas válidas. Registro interrumpido; revisa el sensor.')
+                    if self.mode == 'CALENTAMIENTO' and active_flag == 0:
+                        self.stop('El relé se desactivó durante el calentamiento.')
+                        break
+                    if self.mode == 'ENFRIAMIENTO' and active_flag == 1:
+                        self.stop('Estado inesperado: relé activo en enfriamiento.')
+                        break
+                    if reached_target(temp, self.active_target, self.mode):
+                        self.stop(f'Objetivo alcanzado: {temp:.2f} °C. Medición finalizada.')
+                        break
+                    diferencia = abs(self.active_target - temp)
+                    self.alert.set(f'{self.mode.capitalize()}: faltan {diferencia:.2f} °C para el objetivo.')
+
+                if self.ser is not None:
+                    now = time.monotonic()
+                    if self.start_sent and not self.started and now - self.sent_start_at >= 2.5:
+                        self.stop('Arduino no confirmó el inicio; prueba cancelada.')
+                    elif self.pending_stop_reason and now - self.last_valid_at >= 1.0:
+                        self.stop(self.pending_stop_reason)
+                    elif now - self.last_valid_at >= TIEMPO_SIN_DATOS_S:
+                        self.stop('Sin datos válidos. Prueba cancelada y relé apagado.')
             except (OSError, serial.SerialException, ValueError) as e:
-                self.stop(f'Registro interrumpido: {e}')
+                self.stop(f'Comunicación interrumpida: {e}')
         if changed:
             self.redraw()
         self.root.after(INTERVALO_GUI_MS, self.poll)
@@ -381,6 +510,11 @@ class App:
             return
         delta, mean, hz = indicators(self.data)
         metadata = {'temperatura_objetivo_C': self.active_target,
+                    'modo': self.mode,
+                    'duracion_s': self.data[-1][0] if self.data else None,
+                    'tiempo_hasta_objetivo_s': (self.data[-1][0] if self.data and
+                        ('OBJETIVO_ALCANZADO' in reason or 'Objetivo alcanzado' in reason)
+                        else None),
                     'motivo': reason, 'mediciones': len(self.data),
                     'delta_T_C': delta, 'promedio_C': mean, 'frecuencia_Hz': hz}
         try:
@@ -390,10 +524,17 @@ class App:
             self.alert.set(f'No se pudo guardar metadatos: {e}')
 
     def stop(self, reason=None):
-        """Cierra el puerto y el CSV; no envía órdenes a la fuente de plasma."""
+        """Solicita apagar el relé de prueba y cierra el CSV y el puerto."""
         if self.ser is None:
             return
         errors = []
+        # IMPORTANTE: enviar P ANTES de cerrar el puerto (si sigue abierto).
+        try:
+            self.send_command('P')
+        except (OSError, serial.SerialException) as e:
+            errors.append('No pudo enviarse P: ' + str(e))
+        self.relay_status.set('APAGADO (ORDEN ENVIADA)')
+        self.started = False
         for resource in (self.ser, self.out):
             if resource is not None:
                 try:
@@ -428,6 +569,7 @@ class App:
         self.path = Path(path)
         self.folder = self.path.parent
         self.active_target = None
+        self.mode = None
         self.target.set('')
         reason = 'Registro histórico (sin metadatos del objetivo).'
         try:
@@ -438,6 +580,7 @@ class App:
             if value is not None:
                 self.active_target = parse_target(str(value))
                 self.target.set(str(self.active_target))
+            self.mode = metadata.get('modo')
             reason = str(metadata.get('motivo', 'Registro histórico.'))
         except (OSError, ValueError, TypeError, AttributeError):
             pass  # Los CSV de versiones anteriores no tienen metadatos.
@@ -448,7 +591,7 @@ class App:
         self.redraw()
         self.filename.set(f'Archivo: {self.path}')
         self.alert.set(reason)
-        self.status.set(f'Experimento recuperado. {len(data)} mediciones. No se necesita Arduino.')
+        self.status.set(f'Experimento recuperado ({self.mode or "modo no guardado"}). {len(data)} mediciones. No se necesita Arduino.')
 
     def export(self):
         """Exporta el gráfico de la sesión como PNG para usarlo en un informe."""
@@ -477,4 +620,3 @@ if __name__ == '__main__':
     root = tk.Tk()
     App(root)
     root.mainloop()
-
